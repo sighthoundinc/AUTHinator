@@ -1,0 +1,279 @@
+version: '3'
+
+set:
+  - errexit
+  - nounset
+  - pipefail
+
+vars:
+  PROJECT_NAME: RMAinator
+  BACKEND_DIR: backend
+  FRONTEND_DIR: frontend
+  COVERAGE_THRESHOLD: 75
+
+tasks:
+  default:
+    desc: List all available tasks
+    cmds:
+      - task --list
+    silent: true
+
+  # === Backend Tasks ===
+  
+  backend:install:
+    desc: Install backend dependencies
+    dir: "{{.BACKEND_DIR}}"
+    cmds:
+      - pip install -r requirements.txt
+    sources:
+      - requirements.txt
+    generates:
+      - "{{.BACKEND_DIR}}/venv/**"
+
+  backend:migrate:
+    desc: Run Django migrations
+    dir: "{{.BACKEND_DIR}}"
+    cmds:
+      - python manage.py migrate
+
+  backend:makemigrations:
+    desc: Create new Django migrations
+    dir: "{{.BACKEND_DIR}}"
+    cmds:
+      - python manage.py makemigrations
+
+  backend:test:
+    desc: Run backend tests
+    dir: "{{.BACKEND_DIR}}"
+    cmds:
+      - python manage.py test
+
+  backend:test:coverage:
+    desc: Run backend tests with coverage report
+    dir: "{{.BACKEND_DIR}}"
+    cmds:
+      - coverage run --source='.' manage.py test
+      - coverage report --omit="*/tests.py,*/migrations/*,*/venv/*,manage.py,*/admin.py,*/__init__.py,*/apps.py"
+      - echo ""
+      - coverage report --omit="*/tests.py,*/migrations/*,*/venv/*,manage.py,*/admin.py,*/__init__.py,*/apps.py" | tail -1 | awk '{if ($NF+0 >= {{.COVERAGE_THRESHOLD}}) print "✓ Coverage threshold met (≥{{.COVERAGE_THRESHOLD}}%)"; else {print "✗ Coverage below threshold (" $NF " < {{.COVERAGE_THRESHOLD}}%)"; exit 1}}'
+
+  backend:lint:
+    desc: Lint backend code (if linter installed)
+    dir: "{{.BACKEND_DIR}}"
+    cmds:
+      - |
+        if command -v ruff >/dev/null 2>&1; then
+          ruff check .
+        else
+          echo "⚠ ruff not installed. Install with: pip install ruff"
+        fi
+
+  backend:fmt:
+    desc: Format backend code (if formatter installed)
+    dir: "{{.BACKEND_DIR}}"
+    cmds:
+      - |
+        if command -v black >/dev/null 2>&1; then
+          black .
+        else
+          echo "⚠ black not installed. Install with: pip install black"
+        fi
+
+  backend:dev:
+    desc: Start Django development server
+    dir: "{{.BACKEND_DIR}}"
+    cmds:
+      - python manage.py runserver
+
+  backend:shell:
+    desc: Open Django shell
+    dir: "{{.BACKEND_DIR}}"
+    cmds:
+      - python manage.py shell
+
+  backend:check-stale:
+    desc: Check for stale RMAs
+    dir: "{{.BACKEND_DIR}}"
+    cmds:
+      - python manage.py check_stale_rmas
+
+  backend:check-stale:dry:
+    desc: Dry run of stale RMA check
+    dir: "{{.BACKEND_DIR}}"
+    cmds:
+      - python manage.py check_stale_rmas --dry-run
+
+  # === Frontend Tasks ===
+
+  frontend:install:
+    desc: Install frontend dependencies
+    dir: "{{.FRONTEND_DIR}}"
+    cmds:
+      - npm install
+    sources:
+      - package.json
+      - package-lock.json
+    generates:
+      - node_modules/**
+
+  frontend:dev:
+    desc: Start frontend development server
+    dir: "{{.FRONTEND_DIR}}"
+    cmds:
+      - npm run dev
+
+  frontend:build:
+    desc: Build frontend for production
+    dir: "{{.FRONTEND_DIR}}"
+    cmds:
+      - npm run build
+
+  frontend:preview:
+    desc: Preview production build
+    dir: "{{.FRONTEND_DIR}}"
+    cmds:
+      - npm run preview
+
+  frontend:lint:
+    desc: Lint frontend code
+    dir: "{{.FRONTEND_DIR}}"
+    cmds:
+      - npm run lint
+
+  frontend:fmt:
+    desc: Format frontend code (if configured)
+    dir: "{{.FRONTEND_DIR}}"
+    cmds:
+      - |
+        if grep -q '"format"' package.json 2>/dev/null; then
+          npm run format
+        else
+          echo "⚠ No format script configured in package.json"
+        fi
+
+  frontend:test:
+    desc: Run frontend tests (if configured)
+    dir: "{{.FRONTEND_DIR}}"
+    cmds:
+      - |
+        if grep -q '"test"' package.json 2>/dev/null; then
+          npm test
+        else
+          echo "⚠ No test script configured. Frontend tests need to be set up."
+        fi
+
+  # === Combined Project Tasks ===
+
+  install:
+    desc: Install all dependencies (backend + frontend)
+    deps:
+      - backend:install
+      - frontend:install
+
+  dev:
+    desc: Start both development servers (run in separate terminals or use tmux/screen)
+    cmds:
+      - |
+        echo "Start backend with: task backend:dev"
+        echo "Start frontend with: task frontend:dev"
+        echo ""
+        echo "Or run both in parallel:"
+        echo "  task backend:dev & task frontend:dev"
+
+  test:
+    desc: Run all tests
+    deps:
+      - backend:test
+
+  test:coverage:
+    desc: Run tests with coverage (≥{{.COVERAGE_THRESHOLD}}%)
+    deps:
+      - backend:test:coverage
+
+  lint:
+    desc: Lint all code
+    deps:
+      - backend:lint
+      - frontend:lint
+
+  fmt:
+    desc: Format all code
+    deps:
+      - backend:fmt
+      - frontend:fmt
+
+  check:
+    desc: Run pre-commit checks (fmt, lint, test, coverage)
+    deps:
+      - fmt
+      - lint
+      - test:coverage
+    cmds:
+      - echo "✓ All checks passed"
+
+  build:
+    desc: Build project for production
+    deps:
+      - frontend:build
+    cmds:
+      - echo "✓ Project built successfully"
+
+  clean:
+    desc: Clean build artifacts and caches
+    cmds:
+      - rm -rf {{.BACKEND_DIR}}/__pycache__
+      - rm -rf {{.BACKEND_DIR}}/**/__pycache__
+      - rm -rf {{.BACKEND_DIR}}/.coverage
+      - rm -rf {{.BACKEND_DIR}}/.pytest_cache
+      - rm -rf {{.BACKEND_DIR}}/db.sqlite3
+      - rm -rf {{.FRONTEND_DIR}}/dist
+      - rm -rf {{.FRONTEND_DIR}}/node_modules/.vite
+      - rm -rf {{.FRONTEND_DIR}}/.next
+      - echo "✓ Cleaned artifacts"
+
+  clean:all:
+    desc: Clean everything including dependencies
+    deps:
+      - clean
+    cmds:
+      - rm -rf {{.BACKEND_DIR}}/venv
+      - rm -rf {{.FRONTEND_DIR}}/node_modules
+      - echo "✓ Cleaned all artifacts and dependencies"
+
+  db:reset:
+    desc: Reset database (WARNING - Deletes all data)
+    dir: "{{.BACKEND_DIR}}"
+    prompt: "This will delete all data. Continue?"
+    cmds:
+      - rm -f db.sqlite3
+      - python manage.py migrate
+      - echo "✓ Database reset complete"
+
+  db:seed:
+    desc: Create sample data (if seed script exists)
+    dir: "{{.BACKEND_DIR}}"
+    cmds:
+      - |
+        if [ -f "seed_data.py" ]; then
+          python seed_data.py
+        else
+          echo "⚠ No seed_data.py script found"
+        fi
+
+  stats:
+    desc: Show project statistics
+    cmds:
+      - |
+        echo "{{.PROJECT_NAME}} Statistics:"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "Backend:"
+        echo "  Python files:    $(find {{.BACKEND_DIR}} -name '*.py' -not -path '*/migrations/*' -not -path '*/venv/*' | wc -l | tr -d ' ')"
+        echo "  Test files:      $(find {{.BACKEND_DIR}} -name 'tests.py' | wc -l | tr -d ' ')"
+        echo "  Migrations:      $(find {{.BACKEND_DIR}} -path '*/migrations/*.py' -not -name '__init__.py' | wc -l | tr -d ' ')"
+        echo ""
+        echo "Frontend:"
+        echo "  TypeScript/JS:   $(find {{.FRONTEND_DIR}}/src -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.jsx' 2>/dev/null | wc -l | tr -d ' ')"
+        echo "  Components:      $(find {{.FRONTEND_DIR}}/src -name '*.tsx' -o -name '*.jsx' 2>/dev/null | wc -l | tr -d ' ')"
+        echo ""
+        echo "Documentation:    $(find . -name '*.md' -not -path './node_modules/*' -not -path './venv/*' | wc -l | tr -d ' ')"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
