@@ -1,5 +1,5 @@
 """
-Custom account adapter for Authinator.
+Custom account adapter for AUTHinator.
 Handles automatic signup for SSO users.
 """
 from allauth.account.adapter import DefaultAccountAdapter

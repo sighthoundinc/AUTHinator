@@ -1,5 +1,5 @@
 """
-URL configuration for Authinator.
+URL configuration for AUTHinator.
 
 Routes:
     /admin/ - Django admin interface

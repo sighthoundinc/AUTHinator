@@ -1,8 +1,8 @@
-# Authinator
+# AUTHinator
 
 🔐 **Centralized Authentication Service with SSO Support**
 
-Authinator is a microservice authentication platform that provides JWT-based authentication, Single Sign-On (SSO), service registry, and user management for distributed systems.
+AUTHinator is a microservice authentication platform that provides JWT-based authentication, Single Sign-On (SSO), service registry, and user management for distributed systems.
 
 ## Features
 
@@ -105,7 +105,7 @@ from django.conf import settings
 import requests
 
 class Command(BaseCommand):
-    help = 'Register service with Authinator'
+    help = 'Register service with AUTHinator'
 
     def handle(self, *args, **options):
         service_data = {
@@ -137,7 +137,7 @@ import requests
 from rest_framework import authentication, exceptions
 from django.conf import settings
 
-class AuthinatorJWTAuthentication(authentication.BaseAuthentication):
+class AUTHinatorJWTAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         auth_header = request.META.get('HTTP_AUTHORIZATION', '')
         
@@ -169,7 +169,7 @@ class AuthinatorJWTAuthentication(authentication.BaseAuthentication):
 # In your settings.py
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'yourservice.authentication.AuthinatorJWTAuthentication',
+        'yourservice.authentication.AUTHinatorJWTAuthentication',
     ],
 }
 ```
@@ -210,7 +210,7 @@ OKTA_BASE_URL=
 ## Project Structure
 
 ```
-authinator/
+AUTHinator/
 ├── auth_core/          # Authentication logic & SSO
 ├── users/              # User & customer management
 ├── services/           # Service registry
@@ -281,7 +281,7 @@ CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
 ### Token Issues
 - Tokens expire after 1 hour by default
 - Use refresh endpoint to get new token
-- Verify Authinator is accessible from your service
+- Verify AUTHinator is accessible from your service
 
 ### CORS Issues
 - Add your frontend URL to `CORS_ALLOWED_ORIGINS`

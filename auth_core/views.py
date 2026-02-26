@@ -1,5 +1,5 @@
 """
-Authentication views for Authinator.
+Authentication views for AUTHinator.
 
 Provides JWT-based authentication endpoints:
 - login: Generate access and refresh tokens
@@ -29,7 +29,7 @@ def health_check(request):
     """
     return Response({
         'status': 'healthy',
-        'service': 'authinator',
+        'service': 'AUTHinator',
         'version': '1.0.0'
     }, status=status.HTTP_200_OK)
 

@@ -5,7 +5,7 @@ from django.utils import timezone
 class Service(models.Model):
     """
     Registered service in the authentication ecosystem.
-    Services can register themselves to appear in the Authinator service directory.
+    Services can register themselves to appear in the AUTHinator service directory.
     """
     name = models.CharField(max_length=100, unique=True, help_text="Display name of the service")
     description = models.TextField(help_text="Description shown to users")

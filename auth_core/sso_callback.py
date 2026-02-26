@@ -1,5 +1,5 @@
 """
-SSO callback handling for Authinator.
+SSO callback handling for AUTHinator.
 After successful SSO login, create JWT token and redirect to frontend.
 """
 from django.shortcuts import redirect
@@ -50,5 +50,5 @@ class SSOCallbackView(View):
             # Redirect back to the service that initiated login
             return redirect(f'{next_url}?token={access_token}')
         else:
-            # Redirect to Authinator frontend service directory
+            # Redirect to AUTHinator frontend service directory
             return redirect(f'http://localhost:3000/?token={access_token}')

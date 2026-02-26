@@ -1,6 +1,6 @@
-# Contributing to Authinator
+# Contributing to AUTHinator
 
-Thank you for your interest in contributing to Authinator! This document provides guidelines for contributing.
+Thank you for your interest in contributing to AUTHinator! This document provides guidelines for contributing.
 
 ## Development Setup
 

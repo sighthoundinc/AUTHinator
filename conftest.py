@@ -1,5 +1,5 @@
 """
-Pytest configuration for Authinator tests.
+Pytest configuration for AUTHinator tests.
 """
 import pytest
 

@@ -32,7 +32,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def register(self, request):
         """
-        Register a service with Authinator.
+        Register a service with AUTHinator.
         
         Services call this endpoint on startup to register themselves.
         Requires a valid service_key.

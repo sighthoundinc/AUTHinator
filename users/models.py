@@ -1,5 +1,5 @@
 """
-User and Customer models for Authinator.
+User and Customer models for AUTHinator.
 
 Implements B2B multi-tenant model where:
 - Customer = Company/organization

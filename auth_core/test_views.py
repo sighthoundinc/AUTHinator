@@ -26,7 +26,7 @@ class TestHealthCheckView:
         data = response.json()
         
         assert data['status'] == 'healthy'
-        assert data['service'] == 'authinator'
+        assert data['service'] == 'AUTHinator'
         assert data['version'] == '1.0.0'
     
     def test_health_check_no_authentication_required(self):
