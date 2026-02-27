@@ -8,12 +8,20 @@ AUTHinator is a microservice authentication platform that provides JWT-based aut
 
 - ✅ **Username/Password Authentication** with secure JWT tokens
 - ✅ **SSO Support** - Google, Microsoft, Auth0, Okta
+- ✅ **Multi-Factor Authentication (MFA)** - TOTP and WebAuthn support
 - ✅ **Service Registry** - Central directory for microservices
 - ✅ **Multi-Tenancy** - Customer isolation with role-based access
 - ✅ **User Approval Workflow** - Admin approval for new users
 - ✅ **Modern UI** - React + TypeScript frontend with Tailwind CSS
+- ✅ **Comprehensive Testing** - 86.94% test coverage with 79+ tests
+- ✅ **Task Automation** - Taskfile for common development tasks
 
 ## Quick Start
+
+### Prerequisites
+- Python 3.10+
+- Node.js 18+
+- [Task](https://taskfile.dev/) (optional but recommended)
 
 ### Backend Setup
 
@@ -23,9 +31,10 @@ python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
 # Install dependencies
-pip install -r requirements.txt
+pip install -r backend/requirements.txt
 
 # Configure environment
+cd backend
 cp .env.example .env
 # Edit .env with your settings
 
@@ -35,8 +44,33 @@ python manage.py migrate
 # Create superuser
 python manage.py createsuperuser
 
-# Start backend (port 8000)
-python manage.py runserver 8000
+# Start backend (port 8001)
+python manage.py runserver 8001
+```
+
+### Using Taskfile (Recommended)
+
+```bash
+# Install all dependencies
+task install
+
+# Run backend development server
+task backend:dev
+
+# Run frontend development server
+task frontend:dev
+
+# Run tests with coverage
+task test:coverage
+
+# Run linting
+task lint
+
+# Run formatting
+task fmt
+
+# Run all checks (format, lint, test)
+task check
 ```
 
 ### Frontend Setup
@@ -207,22 +241,61 @@ OKTA_CLIENT_SECRET=
 OKTA_BASE_URL=
 ```
 
+## Testing
+
+AUTHinator maintains **86.94% test coverage** (exceeds 85% requirement).
+
+```bash
+# Run tests with coverage
+task test:coverage
+
+# Or manually with pytest
+cd backend
+pytest --cov --cov-report=html
+
+# View coverage report
+open backend/htmlcov/index.html
+```
+
+### Test Suite
+- **79 tests** covering authentication, SSO, user management, and services
+- Comprehensive testing of:
+  - JWT authentication flows
+  - SSO adapters (Google, Microsoft, etc.)
+  - Signal handlers for social login
+  - User registration and approval workflows
+  - Service registry
+  - Customer and user models
+
 ## Project Structure
 
 ```
 AUTHinator/
-├── auth_core/          # Authentication logic & SSO
-├── users/              # User & customer management
-├── services/           # Service registry
-├── config/             # Django settings
-├── frontend/           # React TypeScript app
+├── backend/               # Django backend
+│   ├── auth_core/         # Authentication logic & SSO
+│   │   ├── test_account_adapter.py
+│   │   ├── test_adapters.py
+│   │   ├── test_jwt_auth.py
+│   │   ├── test_signals.py
+│   │   └── test_views.py
+│   ├── users/             # User & customer management
+│   │   ├── test_models.py
+│   │   └── test_registration.py
+│   ├── services/          # Service registry
+│   ├── mfa/               # Multi-factor authentication
+│   ├── config/            # Django settings
+│   ├── .env.example       # Example configuration
+│   ├── requirements.txt   # Python dependencies
+│   ├── pytest.ini         # Test configuration
+│   └── manage.py
+├── frontend/              # React TypeScript app
 │   ├── src/
-│   │   ├── pages/      # Login, ServiceDirectory
-│   │   └── api/        # API client
+│   │   ├── pages/         # Login, ServiceDirectory
+│   │   └── api/           # API client
 │   └── public/
-├── .env.example        # Example configuration
-├── requirements.txt    # Python dependencies
-└── manage.py
+├── docs/                  # Documentation
+├── Taskfile.yml           # Task automation
+└── README.md
 ```
 
 ## Security
@@ -277,20 +350,49 @@ gunicorn config.wsgi:application --bind 0.0.0.0:8000
 
 ## Development
 
-```bash
-# Run tests
-python manage.py test
+### Available Tasks
 
-# Create migrations
+```bash
+# Development servers
+task backend:dev         # Start backend server (port 8001)
+task frontend:dev        # Start frontend server (port 3000)
+
+# Testing
+task test                # Run backend tests
+task test:coverage       # Run tests with coverage report
+task frontend:test       # Run frontend tests
+
+# Code quality
+task fmt                 # Format code (black + prettier)
+task lint                # Lint code (ruff + eslint)
+task check               # Run all checks (fmt + lint + test)
+
+# Database
+task backend:migrate     # Run migrations
+task backend:makemigrations  # Create migrations
+task db:reset            # Reset database
+
+# Other
+task clean               # Clean cache files
+task stats               # Show project statistics
+```
+
+### Manual Development
+
+```bash
+# Backend
+cd backend
 python manage.py makemigrations
 python manage.py migrate
+pytest                    # Run tests
+ruff check .             # Lint
+black .                  # Format
 
-# Format code
-black .
-isort .
-
-# Lint
-ruff check .
+# Frontend
+cd frontend
+npm run lint
+npm run typecheck
+npm run build
 ```
 
 ## License
