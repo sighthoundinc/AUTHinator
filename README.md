@@ -1,20 +1,69 @@
-# AUTHinator
+# 🔐 AUTHinator
 
-🔐 **Centralized Authentication Service with SSO Support**
+> *"Behold! The AUTHinator! With this device, I shall control all authentication across the entire Tri-State Area's microservices! No user shall pass without my JWT tokens! Mwahahaha!"*
+> 
+> — Dr. Heinz Doofenshmirtz (probably)
 
-AUTHinator is a microservice authentication platform that provides JWT-based authentication, Single Sign-On (SSO), service registry, and user management for distributed systems.
+**AUTHinator** is the authentication backbone of the Inator Platform. It's a Django-based microservice that provides JWT authentication, Single Sign-On (SSO), multi-factor authentication (MFA), service registry, and multi-tenant user management.
 
-## Features
+Every other -inator delegates authentication to AUTHinator. Services never store credentials — they validate JWT tokens and trust AUTHinator to be the source of truth.
 
-- ✅ **Username/Password Authentication** with secure JWT tokens
-- ✅ **SSO Support** - Google, Microsoft, Auth0, Okta
-- ✅ **Multi-Factor Authentication (MFA)** - TOTP and WebAuthn support
-- ✅ **Service Registry** - Central directory for microservices
-- ✅ **Multi-Tenancy** - Customer isolation with role-based access
-- ✅ **User Approval Workflow** - Admin approval for new users
-- ✅ **Modern UI** - React + TypeScript frontend with Tailwind CSS
-- ✅ **Comprehensive Testing** - 86.94% test coverage with 79+ tests
-- ✅ **Task Automation** - Taskfile for common development tasks
+## 🎯 What Does It Do?
+
+```mermaid
+graph TB
+    subgraph "Your Microservices"
+        RMA[📦 RMAinator]
+        FULFIL[🚚 Fulfilinator]
+        OTHER[🔧 YourService]
+    end
+    
+    subgraph "AUTHinator"
+        AUTH[🔐 JWT Auth]
+        SSO[🌐 SSO Providers]
+        MFA[🔑 MFA]
+        USERS[👥 User Management]
+        REGISTRY[📋 Service Registry]
+    end
+    
+    USER[👤 End User]
+    
+    USER -->|Login| AUTH
+    USER -->|Google/MS| SSO
+    USER -->|2FA| MFA
+    
+    AUTH -->|JWT Token| USER
+    
+    USER -->|Request + JWT| RMA
+    USER -->|Request + JWT| FULFIL
+    USER -->|Request + JWT| OTHER
+    
+    RMA -->|Validate Token| AUTH
+    FULFIL -->|Validate Token| AUTH
+    OTHER -->|Validate Token| AUTH
+    
+    RMA -.->|Register| REGISTRY
+    FULFIL -.->|Register| REGISTRY
+    OTHER -.->|Register| REGISTRY
+    
+    style AUTH fill:#4a90d9,color:#fff
+    style SSO fill:#27ae60,color:#fff
+    style MFA fill:#e67e22,color:#fff
+    style USERS fill:#9b59b6,color:#fff
+    style REGISTRY fill:#3498db,color:#fff
+```
+
+### Features
+
+- ✅ **JWT Authentication** — Secure access tokens with refresh flow
+- ✅ **SSO Support** — Google, Microsoft, Auth0, Okta
+- ✅ **Multi-Factor Authentication** — TOTP and WebAuthn/passkeys
+- ✅ **Service Registry** — Central directory for your microservices
+- ✅ **Multi-Tenancy** — Customer-scoped data with role-based access (ADMIN/USER)
+- ✅ **User Approval Workflow** — Admin reviews before activation
+- ✅ **Modern Frontend** — React + TypeScript + Tailwind CSS
+- ✅ **Battle-Tested** — 86.94% test coverage with 79+ tests
+- ✅ **Task Automation** — Taskfile for dev, test, deploy workflows
 
 ## Quick Start
 
@@ -82,33 +131,72 @@ npm start  # Starts on port 3000
 ```
 
 ### Access
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
-- Admin: http://localhost:8000/admin
 
-## SSO Configuration
+| Service | URL | Purpose |
+|---------|-----|----------|
+| **Frontend** | http://localhost:3000 | User login, registration, profile |
+| **Backend API** | http://localhost:8001 | REST API endpoints |
+| **Admin Panel** | http://localhost:8001/admin | Django admin interface |
 
-### Google OAuth
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create OAuth 2.0 Client ID
-3. Add redirect URI: `http://localhost:8000/accounts/google/login/callback/`
-4. Add credentials to `.env`:
-   ```
+## 🌐 SSO Integration
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant AUTHinator
+    participant Google
+    participant YourService
+
+    User->>AUTHinator: Click "Login with Google"
+    AUTHinator->>Google: Redirect to OAuth
+    Google->>User: Login prompt
+    User->>Google: Authenticate
+    Google->>AUTHinator: Return with code
+    AUTHinator->>Google: Exchange for user info
+    AUTHinator->>AUTHinator: Create/link user
+    AUTHinator->>User: Return JWT tokens
+    User->>YourService: API request + JWT
+    YourService->>AUTHinator: Validate token
+    AUTHinator->>YourService: User info
+    YourService->>User: Response
+```
+
+### Supported Providers
+
+- **Google OAuth 2.0**
+- **Microsoft Azure AD / Entra ID**
+- **Auth0**
+- **Okta**
+
+### Setup Example: Google OAuth
+
+1. **Create OAuth credentials** at [Google Cloud Console](https://console.cloud.google.com/)
+2. **Set redirect URI**: `http://localhost:8001/accounts/google/login/callback/`
+3. **Add to backend/.env**:
+   ```bash
    GOOGLE_CLIENT_ID=your-client-id
    GOOGLE_CLIENT_SECRET=your-secret
    ```
-5. Run: `python manage.py setup_sso`
-
-### Microsoft OAuth
-1. Go to [Azure Portal](https://portal.azure.com/)
-2. Register application
-3. Add redirect URI: `http://localhost:8000/accounts/microsoft/login/callback/`
-4. Add credentials to `.env`:
+4. **Configure in Django**:
+   ```bash
+   cd backend
+   python manage.py setup_sso
    ```
+
+### Setup Example: Microsoft
+
+1. **Register app** at [Azure Portal](https://portal.azure.com/)
+2. **Set redirect URI**: `http://localhost:8001/accounts/microsoft/login/callback/`
+3. **Add to backend/.env**:
+   ```bash
    MICROSOFT_CLIENT_ID=your-client-id
    MICROSOFT_CLIENT_SECRET=your-secret
    ```
-5. Run: `python manage.py setup_sso`
+4. **Configure in Django**:
+   ```bash
+   cd backend
+   python manage.py setup_sso
+   ```
 
 ## API Endpoints
 
@@ -128,107 +216,199 @@ npm start  # Starts on port 3000
 - `POST /api/users/<id>/approve/` - Approve user
 - `POST /api/users/<id>/reject/` - Reject user
 
-## Registering a Microservice
+## 🔌 Integrating Your Service
 
-Create a management command in your service:
+### Step 1: Register Your Service
+
+Create a registration command in your service:
 
 ```python
 # yourservice/management/commands/register_service.py
 from django.core.management.base import BaseCommand
-from django.conf import settings
 import requests
 
 class Command(BaseCommand):
-    help = 'Register service with AUTHinator'
+    help = 'Register with AUTHinator service registry'
 
     def handle(self, *args, **options):
         service_data = {
-            'name': 'YourService',
-            'description': 'Service description',
+            'name': 'YourServiceinator',
+            'description': 'Does amazing things',
             'base_url': 'http://localhost:8003',
             'api_prefix': '/api',
             'ui_url': 'http://localhost:3003',
             'icon': '🚀',
-            'service_key': settings.SERVICE_REGISTRATION_KEY,
+            'service_key': 'your-shared-secret',
         }
         
         response = requests.post(
-            settings.SERVICE_REGISTRY_URL,
+            'http://localhost:8001/api/services/register/',
             json=service_data
         )
         
-        if response.status_code in [200, 201]:
-            self.stdout.write(self.style.SUCCESS('Service registered'))
+        if response.ok:
+            self.stdout.write(self.style.SUCCESS('✅ Registered!'))
         else:
-            self.stdout.write(self.style.ERROR(f'Failed: {response.text}'))
+            self.stdout.write(self.style.ERROR(f'❌ Failed: {response.text}'))
 ```
 
-## Validating Tokens in Your Service
+Run it:
+```bash
+python manage.py register_service
+```
+
+### Step 2: Validate JWT Tokens
 
 ```python
 # yourservice/authentication.py
 import requests
 from rest_framework import authentication, exceptions
-from django.conf import settings
 
-class AUTHinatorJWTAuthentication(authentication.BaseAuthentication):
+class AUTHinatorAuthentication(authentication.BaseAuthentication):
+    """Validate JWT tokens against AUTHinator."""
+    
+    AUTHINATOR_URL = 'http://localhost:8001'
+    
     def authenticate(self, request):
+        # Extract Bearer token
         auth_header = request.META.get('HTTP_AUTHORIZATION', '')
-        
         if not auth_header:
             return None
         
         parts = auth_header.split()
         if len(parts) != 2 or parts[0].lower() != 'bearer':
-            raise exceptions.AuthenticationFailed('Invalid header')
+            raise exceptions.AuthenticationFailed('Invalid authorization header')
         
         token = parts[1]
         
+        # Validate with AUTHinator
         try:
             response = requests.get(
-                f'{settings.AUTHINATOR_API_URL}me/',
+                f'{self.AUTHINATOR_URL}/api/auth/me/',
                 headers={'Authorization': f'Bearer {token}'},
                 timeout=5
             )
             
             if response.status_code == 200:
                 user_data = response.json()
-                # Create a user object with the data
+                # Return (user_data, token) tuple
+                # DRF will set request.user = user_data
                 return (user_data, token)
         except requests.RequestException:
             pass
-            
-        raise exceptions.AuthenticationFailed('Invalid token')
+        
+        raise exceptions.AuthenticationFailed('Invalid or expired token')
 
 # In your settings.py
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'yourservice.authentication.AUTHinatorJWTAuthentication',
+        'yourservice.authentication.AUTHinatorAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
     ],
 }
 ```
 
-## Environment Variables
+### Step 3: Enforce Permissions
 
-Required variables in `.env`:
+```python
+# Check user role from JWT
+def your_view(request):
+    user = request.user  # Dict from JWT
+    
+    if user.get('role') == 'ADMIN':
+        # Full access
+        pass
+    elif user.get('role') == 'USER':
+        # Customer-scoped access
+        customer_id = user.get('customer_id')
+        # Filter data by customer_id
+        pass
+```
+
+## ⚛️ Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Backend** | Python 3.10+, Django 6.x, Django REST Framework |
+| **Frontend** | TypeScript (strict), React 18, Vite, Tailwind CSS |
+| **Authentication** | JWT (simplejwt), django-allauth |
+| **SSO** | Google OAuth, Microsoft Azure AD, Auth0, Okta |
+| **MFA** | TOTP, WebAuthn/passkeys |
+| **Testing** | pytest + coverage (86.94%), pytest-django |
+| **Database** | SQLite (dev), PostgreSQL (prod) |
+| **Task Runner** | [Taskfile](https://taskfile.dev/) |
+
+## 📦 Deployment
+
+### Docker Deployment (Recommended)
 
 ```bash
-# Django
-DEBUG=True
-SECRET_KEY=your-secret-key
-ALLOWED_HOSTS=localhost,127.0.0.1
+# Coming soon - Docker Compose setup
+```
 
-# Database
-DATABASE_URL=sqlite:///db.sqlite3
+### Manual Deployment
 
-# CORS
-CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,http://localhost:3002
+#### Production Backend
+
+```bash
+# 1. Install dependencies
+cd backend
+pip install -r requirements.txt gunicorn psycopg2-binary
+
+# 2. Set environment variables (see below)
+cp .env.example .env
+# Edit .env with production values
+
+# 3. Collect static files
+python manage.py collectstatic --noinput
+
+# 4. Run migrations
+python manage.py migrate
+
+# 5. Create superuser
+python manage.py createsuperuser
+
+# 6. Start with gunicorn
+gunicorn config.wsgi:application \
+  --bind 0.0.0.0:8001 \
+  --workers 4 \
+  --timeout 120 \
+  --access-logfile - \
+  --error-logfile -
+```
+
+#### Production Frontend
+
+```bash
+cd frontend
+npm install
+npm run build
+# Serve the dist/ directory with nginx or similar
+```
+
+### Environment Variables
+
+Copy `backend/.env.example` to `backend/.env` and configure:
+
+```bash
+# Django Core
+DEBUG=False                    # MUST be False in production
+SECRET_KEY=your-secret-key-min-50-chars
+ALLOWED_HOSTS=yourdomain.com,api.yourdomain.com
+
+# Database (use PostgreSQL in production)
+DATABASE_URL=postgresql://user:pass@localhost:5432/authinator
+
+# CORS (your frontend domains)
+CORS_ALLOWED_ORIGINS=https://yourdomain.com,https://app.yourdomain.com
 
 # Service Registry
 SERVICE_REGISTRY_ENABLED=True
-SERVICE_REGISTRATION_KEY=your-service-key
+SERVICE_REGISTRATION_KEY=generate-a-secure-key
 
-# SSO (Optional - leave empty to disable)
+# SSO Providers (optional - leave empty to disable)
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 MICROSOFT_CLIENT_ID=
@@ -239,6 +419,11 @@ AUTH0_DOMAIN=
 OKTA_CLIENT_ID=
 OKTA_CLIENT_SECRET=
 OKTA_BASE_URL=
+
+# Security (production only)
+SESSION_COOKIE_SECURE=True
+CSRF_COOKIE_SECURE=True
+SECURE_SSL_REDIRECT=True
 ```
 
 ## Testing
@@ -298,55 +483,81 @@ AUTHinator/
 └── README.md
 ```
 
-## Security
-
-### Development
-- SQLite database
-- Debug mode enabled
-- HTTP allowed
+## 🔒 Security
 
 ### Production Checklist
-- [ ] `DEBUG=False`
-- [ ] Strong `SECRET_KEY`
-- [ ] PostgreSQL database
-- [ ] HTTPS only
-- [ ] `SESSION_COOKIE_SECURE=True`
-- [ ] `CSRF_COOKIE_SECURE=True`
-- [ ] Production SSO redirect URIs
-- [ ] Rate limiting on auth endpoints
-- [ ] Regular security audits
+
+**Before deploying to production:**
+
+- [ ] **Set `DEBUG=False`** in `.env`
+- [ ] **Generate strong `SECRET_KEY`** (50+ random characters)
+- [ ] **Use PostgreSQL** instead of SQLite
+- [ ] **Enable HTTPS** and set secure cookie flags:
+  - `SESSION_COOKIE_SECURE=True`
+  - `CSRF_COOKIE_SECURE=True`
+  - `SECURE_SSL_REDIRECT=True`
+- [ ] **Update SSO redirect URIs** to production domains
+- [ ] **Set `ALLOWED_HOSTS`** to your actual domains
+- [ ] **Configure CORS** for production frontend URLs
+- [ ] **Use strong service registration key**
+- [ ] **Implement rate limiting** on authentication endpoints
+- [ ] **Regular security audits** and dependency updates
+- [ ] **Backup strategy** for database
 
 ### Secrets Management
-- ✅ `.env` excluded from git
-- ✅ `.env.example` provided without secrets
-- ✅ No hardcoded credentials
-- ✅ SSO credentials stored in database
 
-## Deployment
+- ✅ **All secrets in `.env`** (gitignored)
+- ✅ **`.env.example` template** provided
+- ✅ **No hardcoded credentials** in code
+- ✅ **SSO credentials encrypted** in database
+- ✅ **Service keys validated** before registration
 
-### Using Gunicorn
 
-```bash
-pip install gunicorn
-gunicorn config.wsgi:application --bind 0.0.0.0:8000
-```
+## 🐛 Troubleshooting
 
-## Troubleshooting
+### 🌐 SSO Not Working?
 
-### SSO Issues
-- Verify redirect URIs match exactly (trailing slash matters!)
-- Check OAuth credentials in `.env`
-- Run `python manage.py setup_sso` after updating credentials
-- Clear browser cookies and try again
+**Symptom**: OAuth redirect fails or shows error
 
-### Token Issues
-- Tokens expire after 1 hour by default
-- Use refresh endpoint to get new token
-- Verify AUTHinator is accessible from your service
+**Solutions**:
+1. **Check redirect URI** — Must match EXACTLY (trailing slash matters!)
+   - Dev: `http://localhost:8001/accounts/google/login/callback/`
+   - Prod: `https://yourdomain.com/accounts/google/login/callback/`
+2. **Verify credentials** in `backend/.env`
+3. **Run setup**: `cd backend && python manage.py setup_sso`
+4. **Clear cookies** and try again
+5. **Check console** for CORS errors
 
-### CORS Issues
-- Add your frontend URL to `CORS_ALLOWED_ORIGINS`
-- Restart backend after changes
+### 🔐 Token Validation Failing?
+
+**Symptom**: Services reject valid tokens
+
+**Solutions**:
+1. **Check token expiry** — Access tokens expire after 1 hour
+2. **Use refresh endpoint**: `POST /api/auth/refresh/` with refresh token
+3. **Verify AUTHinator URL** in service configuration
+4. **Check CORS** if calling from browser
+5. **Inspect JWT** at [jwt.io](https://jwt.io) to verify claims
+
+### ❌ CORS Errors?
+
+**Symptom**: Browser blocks requests
+
+**Solutions**:
+1. **Add origins** to `CORS_ALLOWED_ORIGINS` in `backend/.env`
+2. **Restart backend** after changes
+3. **Check protocol** — http vs https must match
+4. **Verify port numbers** are correct
+
+### 📦 Service Registration Fails?
+
+**Symptom**: `register_service` returns 403/401
+
+**Solutions**:
+1. **Check service key** matches in both services
+2. **Verify URL** is `http://localhost:8001/api/services/register/`
+3. **Enable registry** — `SERVICE_REGISTRY_ENABLED=True`
+4. **Check logs** in backend for detailed error
 
 ## Development
 
@@ -395,11 +606,46 @@ npm run typecheck
 npm run build
 ```
 
-## License
+## 📜 API Documentation
 
-MIT
+Full API documentation available at:
+- **Swagger UI**: `http://localhost:8001/api/docs/`
+- **ReDoc**: `http://localhost:8001/api/redoc/`
 
-## Support
+### Key Endpoints
 
-- GitHub Issues: [Report bugs or request features]
-- Documentation: See inline code documentation
+| Endpoint | Method | Purpose |
+|----------|--------|----------|
+| `/api/auth/login/` | POST | Username/password login |
+| `/api/auth/refresh/` | POST | Refresh JWT token |
+| `/api/auth/logout/` | POST | Blacklist refresh token |
+| `/api/auth/me/` | GET | Get current user info |
+| `/api/auth/register/` | POST | User registration |
+| `/api/auth/sso-providers/` | GET | List enabled SSO providers |
+| `/api/services/register/` | POST | Register service (requires key) |
+| `/api/services/` | GET | List registered services |
+| `/api/users/pending/` | GET | Pending user approvals (admin) |
+| `/api/users/<id>/approve/` | POST | Approve user (admin) |
+| `/api/users/<id>/reject/` | POST | Reject user (admin) |
+
+## 📦 Repository
+
+**GitHub**: [losomode/AUTHinator](https://github.com/losomode/AUTHinator)
+
+## 📝 License
+
+MIT — See [LICENSE](LICENSE) for details.
+
+## 👥 Contributing
+
+Part of the Inator Platform. See main platform docs for contributing guidelines.
+
+## ❓ Support
+
+- **Issues**: [GitHub Issues](https://github.com/losomode/AUTHinator/issues)
+- **Platform Docs**: [Inator Platform](https://github.com/losomode/inator)
+- **Discord**: Coming soon
+
+---
+
+*Built with ❤️ for the Inator Platform*
