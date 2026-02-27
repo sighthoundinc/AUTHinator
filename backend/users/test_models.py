@@ -98,12 +98,12 @@ class TestUserModel:
             email="test@test.com",
             password="testpass123",
             customer=customer,
-            role=User.CUSTOMER_USER
+            role=User.USER
         )
         assert user.id is not None
         assert user.username == "testuser"
         assert user.customer == customer
-        assert user.role == User.CUSTOMER_USER
+        assert user.role == User.USER
         assert user.is_verified is False
     
     def test_create_system_admin(self):
@@ -112,10 +112,10 @@ class TestUserModel:
             username="admin",
             email="admin@test.com",
             password="adminpass123",
-            role=User.SYSTEM_ADMIN
+            role=User.ADMIN
         )
         assert admin.customer is None
-        assert admin.role == User.SYSTEM_ADMIN
+        assert admin.role == User.ADMIN
     
     def test_user_str_with_customer(self, customer):
         """Test __str__ includes customer name."""
@@ -129,107 +129,72 @@ class TestUserModel:
         """Test __str__ without customer."""
         user = User.objects.create_user(
             username="admin",
-            role=User.SYSTEM_ADMIN
+            role=User.ADMIN
         )
         assert str(user) == "admin"
     
     def test_user_role_choices(self):
         """Test all role choices are valid."""
-        assert User.SYSTEM_ADMIN == 'SYSTEM_ADMIN'
-        assert User.CUSTOMER_ADMIN == 'CUSTOMER_ADMIN'
-        assert User.CUSTOMER_USER == 'CUSTOMER_USER'
-        assert User.CUSTOMER_READONLY == 'CUSTOMER_READONLY'
+        assert User.ADMIN == 'ADMIN'
+        assert User.USER == 'USER'
         
         # Verify choices tuple
         role_values = [choice[0] for choice in User.ROLE_CHOICES]
-        assert User.SYSTEM_ADMIN in role_values
-        assert User.CUSTOMER_ADMIN in role_values
-        assert User.CUSTOMER_USER in role_values
-        assert User.CUSTOMER_READONLY in role_values
+        assert User.ADMIN in role_values
+        assert User.USER in role_values
+        assert len(User.ROLE_CHOICES) == 2
     
     def test_user_default_role(self, customer):
-        """Test default role is CUSTOMER_USER."""
+        """Test default role is USER."""
         user = User.objects.create_user(
             username="newuser",
             customer=customer
         )
-        assert user.role == User.CUSTOMER_USER
+        assert user.role == User.USER
     
-    def test_is_system_admin_method(self):
-        """Test is_system_admin() method."""
+    def test_is_admin_method(self):
+        """Test is_admin() method."""
         admin = User.objects.create_user(
             username="admin",
-            role=User.SYSTEM_ADMIN
+            role=User.ADMIN
         )
         user = User.objects.create_user(
             username="user",
-            role=User.CUSTOMER_USER
+            role=User.USER
+        )
+        assert admin.is_admin() is True
+        assert user.is_admin() is False
+    
+    def test_legacy_admin_aliases(self, customer):
+        """Test legacy is_system_admin/is_customer_admin aliases."""
+        admin = User.objects.create_user(
+            username="admin",
+            role=User.ADMIN
+        )
+        user = User.objects.create_user(
+            username="user",
+            customer=customer,
+            role=User.USER
         )
         assert admin.is_system_admin() is True
-        assert user.is_system_admin() is False
-    
-    def test_is_customer_admin_method(self, customer):
-        """Test is_customer_admin() method."""
-        admin = User.objects.create_user(
-            username="custadmin",
-            customer=customer,
-            role=User.CUSTOMER_ADMIN
-        )
-        user = User.objects.create_user(
-            username="user",
-            customer=customer,
-            role=User.CUSTOMER_USER
-        )
         assert admin.is_customer_admin() is True
+        assert user.is_system_admin() is False
         assert user.is_customer_admin() is False
     
     def test_can_manage_users_method(self, customer):
-        """Test can_manage_users() for different roles."""
-        system_admin = User.objects.create_user(
-            username="sysadmin",
-            role=User.SYSTEM_ADMIN
-        )
-        customer_admin = User.objects.create_user(
-            username="custadmin",
-            customer=customer,
-            role=User.CUSTOMER_ADMIN
+        """Test can_manage_users() for admin vs user."""
+        admin = User.objects.create_user(
+            username="admin",
+            role=User.ADMIN
         )
         regular_user = User.objects.create_user(
             username="user",
             customer=customer,
-            role=User.CUSTOMER_USER
-        )
-        readonly_user = User.objects.create_user(
-            username="readonly",
-            customer=customer,
-            role=User.CUSTOMER_READONLY
+            role=User.USER
         )
         
-        assert system_admin.can_manage_users() is True
-        assert customer_admin.can_manage_users() is True
+        assert admin.can_manage_users() is True
         assert regular_user.can_manage_users() is False
-        assert readonly_user.can_manage_users() is False
-    
-    def test_can_edit_data_method(self, customer):
-        """Test can_edit_data() method."""
-        system_admin = User.objects.create_user(
-            username="sysadmin",
-            role=User.SYSTEM_ADMIN
-        )
-        regular_user = User.objects.create_user(
-            username="user",
-            customer=customer,
-            role=User.CUSTOMER_USER
-        )
-        readonly_user = User.objects.create_user(
-            username="readonly",
-            customer=customer,
-            role=User.CUSTOMER_READONLY
-        )
-        
-        assert system_admin.can_edit_data() is True
-        assert regular_user.can_edit_data() is True
-        assert readonly_user.can_edit_data() is False
     
     def test_user_verification_workflow(self, customer):
         """Test user verification fields."""
@@ -239,7 +204,7 @@ class TestUserModel:
         )
         admin = User.objects.create_user(
             username="admin",
-            role=User.SYSTEM_ADMIN
+            role=User.ADMIN
         )
         
         # Initially unverified
@@ -311,7 +276,7 @@ class TestUserModelEdgeCases:
         """Test user can exist without customer (system admin)."""
         user = User.objects.create_user(
             username="nocustomer",
-            role=User.SYSTEM_ADMIN
+            role=User.ADMIN
         )
         assert user.customer is None
     

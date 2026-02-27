@@ -4,9 +4,9 @@ Custom permission classes for user management.
 from rest_framework import permissions
 
 
-class IsSystemAdminOrCustomerAdmin(permissions.BasePermission):
+class IsAdmin(permissions.BasePermission):
     """
-    Permission class that allows access to system admins and customer admins.
+    Permission class that allows access only to admin users.
     """
     
     def has_permission(self, request, view):
@@ -14,4 +14,8 @@ class IsSystemAdminOrCustomerAdmin(permissions.BasePermission):
         if not request.user or not request.user.is_authenticated:
             return False
         
-        return request.user.is_system_admin() or request.user.is_customer_admin()
+        return request.user.is_admin()
+
+
+# Legacy alias
+IsSystemAdminOrCustomerAdmin = IsAdmin

@@ -1,6 +1,6 @@
-# Contributing to AUTHinator
+# Contributing to Authinator
 
-Thank you for your interest in contributing to AUTHinator! This document provides guidelines for contributing.
+Thank you for your interest in contributing to Authinator! This document provides guidelines for contributing.
 
 ## Development Setup
 
@@ -12,18 +12,16 @@ Thank you for your interest in contributing to AUTHinator! This document provide
    ```
 3. **Install dependencies**:
    ```bash
-   pip install -r requirements.txt
-   cd frontend && npm install
+   task install
    ```
 4. **Configure environment**:
    ```bash
-   cp .env.example .env
-   # Edit .env with your settings
+   cp backend/.env.example backend/.env
+   # Edit backend/.env with your settings
    ```
 5. **Run migrations**:
    ```bash
-   python manage.py migrate
-   python manage.py createsuperuser
+   task backend:migrate
    ```
 
 ## Development Workflow
@@ -35,16 +33,14 @@ Thank you for your interest in contributing to AUTHinator! This document provide
 
 2. **Make your changes** following the code style guidelines
 
-3. **Test your changes**:
+3. **Run checks**:
    ```bash
-   python manage.py test
-   cd frontend && npm test
+   task check
    ```
 
-4. **Commit your changes**:
+4. **Commit your changes** using [Conventional Commits](https://www.conventionalcommits.org/):
    ```bash
-   git add .
-   git commit -m "Description of your changes"
+   git commit -m "feat(auth): add new feature"
    ```
 
 5. **Push and create a pull request**
@@ -53,8 +49,8 @@ Thank you for your interest in contributing to AUTHinator! This document provide
 
 ### Python (Backend)
 - Follow PEP 8
-- Use Black for formatting: `black .`
-- Use isort for imports: `isort .`
+- Use Black for formatting: `task backend:fmt`
+- Use ruff for linting: `task backend:lint`
 - Type hints where appropriate
 - Docstrings for public methods/classes
 
@@ -67,9 +63,9 @@ Thank you for your interest in contributing to AUTHinator! This document provide
 ## Testing
 
 - Write tests for new features
-- Maintain or improve code coverage
-- Test both backend (pytest/Django tests) and frontend (Jest)
-- Test SSO flows manually before submitting
+- Maintain or improve code coverage (≥75%)
+- Run all tests: `task test`
+- Run with coverage: `task test:coverage`
 
 ## Pull Request Guidelines
 
@@ -78,7 +74,7 @@ Thank you for your interest in contributing to AUTHinator! This document provide
 - **Keep PRs focused** - one feature/fix per PR
 - **Update documentation** if adding new features
 - **Add tests** for new functionality
-- **Ensure all tests pass** before submitting
+- **Ensure all checks pass** (`task check`) before submitting
 
 ## Reporting Issues
 

@@ -36,7 +36,7 @@ class TestLoginEndpoint:
             email="user@test.com",
             password="testpass123",
             customer=customer,
-            role=User.CUSTOMER_USER
+            role=User.USER
         )
         user.is_verified = True
         user.save()
@@ -50,7 +50,7 @@ class TestLoginEndpoint:
             email="unverified@test.com",
             password="testpass123",
             customer=customer,
-            role=User.CUSTOMER_USER,
+            role=User.USER,
             is_verified=False
         )
     
@@ -278,7 +278,7 @@ class TestMeEndpoint:
             email="user@test.com",
             password="testpass123",
             customer=customer,
-            role=User.CUSTOMER_USER
+            role=User.USER
         )
         user.is_verified = True
         user.save()
@@ -306,7 +306,7 @@ class TestMeEndpoint:
         data = response.json()
         assert data['username'] == 'testuser'
         assert data['email'] == 'user@test.com'
-        assert data['role'] == User.CUSTOMER_USER
+        assert data['role'] == User.USER
         assert 'customer' in data
         assert data['customer']['name'] == 'Test Corp'
     
@@ -329,6 +329,97 @@ class TestMeEndpoint:
 
 
 @pytest.mark.django_db
+class TestLoginWithMFA:
+    """Test that login gates on MFA when enabled."""
+
+    @pytest.fixture
+    def customer(self):
+        return Customer.objects.create(name="Test Corp", contact_email="test@test.com")
+
+    @pytest.fixture
+    def totp_user(self, customer):
+        import pyotp
+        user = User.objects.create_user(
+            username="totpuser", email="totp@test.com",
+            password="testpass123", customer=customer,
+        )
+        user.is_verified = True
+        user.totp_secret = pyotp.random_base32()
+        user.totp_enabled = True
+        user.save()
+        return user
+
+    @pytest.fixture
+    def webauthn_user(self, customer):
+        from mfa.models import WebAuthnCredential
+        user = User.objects.create_user(
+            username="webauthnuser", email="wa@test.com",
+            password="testpass123", customer=customer,
+        )
+        user.is_verified = True
+        user.save()
+        WebAuthnCredential.objects.create(
+            user=user, name="Key",
+            credential_id=b'\x01\x02\x03',
+            public_key=b'\x04\x05\x06',
+        )
+        return user
+
+    def test_login_returns_mfa_required_for_totp_user(self, totp_user):
+        client = Client()
+        response = client.post('/api/auth/login/', {
+            'username': 'totpuser', 'password': 'testpass123'
+        }, content_type='application/json')
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data['mfa_required'] is True
+        assert 'mfa_token' in data
+        assert 'totp' in data['mfa_methods']
+        # Should NOT contain JWT tokens
+        assert 'access' not in data
+        assert 'refresh' not in data
+
+    def test_login_returns_mfa_required_for_webauthn_user(self, webauthn_user):
+        client = Client()
+        response = client.post('/api/auth/login/', {
+            'username': 'webauthnuser', 'password': 'testpass123'
+        }, content_type='application/json')
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data['mfa_required'] is True
+        assert 'webauthn' in data['mfa_methods']
+        assert 'access' not in data
+
+    def test_login_returns_both_methods_when_both_enabled(self, customer):
+        import pyotp
+        from mfa.models import WebAuthnCredential
+        user = User.objects.create_user(
+            username="bothuser", email="both@test.com",
+            password="testpass123", customer=customer,
+        )
+        user.is_verified = True
+        user.totp_secret = pyotp.random_base32()
+        user.totp_enabled = True
+        user.save()
+        WebAuthnCredential.objects.create(
+            user=user, name="Key",
+            credential_id=b'\x01', public_key=b'\x02',
+        )
+
+        client = Client()
+        response = client.post('/api/auth/login/', {
+            'username': 'bothuser', 'password': 'testpass123'
+        }, content_type='application/json')
+
+        data = response.json()
+        assert data['mfa_required'] is True
+        assert 'totp' in data['mfa_methods']
+        assert 'webauthn' in data['mfa_methods']
+
+
+@pytest.mark.django_db
 class TestJWTEdgeCases:
     """Test edge cases and security considerations."""
     
@@ -347,7 +438,7 @@ class TestJWTEdgeCases:
             username="admin",
             email="admin@test.com",
             password="adminpass123",
-            role=User.SYSTEM_ADMIN
+            role=User.ADMIN
         )
         user.is_verified = True
         user.save()
@@ -384,5 +475,5 @@ class TestJWTEdgeCases:
         assert response.status_code == 200
         data = response.json()
         assert data['username'] == 'admin'
-        assert data['role'] == User.SYSTEM_ADMIN
+        assert data['role'] == User.ADMIN
         assert data['customer'] is None

@@ -19,7 +19,7 @@ class SSOCallbackView(View):
         # User should be authenticated by allauth at this point
         if not request.user.is_authenticated:
             # If not authenticated, redirect to login
-            return redirect('http://localhost:3000/login')
+            return redirect('http://localhost:3001/login')
         
         user = request.user
         
@@ -51,4 +51,4 @@ class SSOCallbackView(View):
             return redirect(f'{next_url}?token={access_token}')
         else:
             # Redirect to AUTHinator frontend service directory
-            return redirect(f'http://localhost:3000/?token={access_token}')
+            return redirect(f'http://localhost:3001/?token={access_token}')

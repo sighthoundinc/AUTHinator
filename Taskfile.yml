@@ -6,10 +6,10 @@ set:
   - pipefail
 
 vars:
-  PROJECT_NAME: RMAinator
+  PROJECT_NAME: Authinator
   BACKEND_DIR: backend
   FRONTEND_DIR: frontend
-  COVERAGE_THRESHOLD: 75
+  COVERAGE_THRESHOLD: 85
 
 tasks:
   default:
@@ -52,10 +52,8 @@ tasks:
     desc: Run backend tests with coverage report
     dir: "{{.BACKEND_DIR}}"
     cmds:
-      - coverage run --source='.' manage.py test
-      - coverage report --omit="*/tests.py,*/migrations/*,*/venv/*,manage.py,*/admin.py,*/__init__.py,*/apps.py"
-      - echo ""
-      - coverage report --omit="*/tests.py,*/migrations/*,*/venv/*,manage.py,*/admin.py,*/__init__.py,*/apps.py" | tail -1 | awk '{if ($NF+0 >= {{.COVERAGE_THRESHOLD}}) print "✓ Coverage threshold met (≥{{.COVERAGE_THRESHOLD}}%)"; else {print "✗ Coverage below threshold (" $NF " < {{.COVERAGE_THRESHOLD}}%)"; exit 1}}'
+      - /Users/ryan/opt/sighthound/inator/Authinator/.venv/bin/python -m pytest
+
 
   backend:lint:
     desc: Lint backend code (if linter installed)
@@ -83,25 +81,13 @@ tasks:
     desc: Start Django development server
     dir: "{{.BACKEND_DIR}}"
     cmds:
-      - python manage.py runserver
+      - python manage.py runserver 8001
 
   backend:shell:
     desc: Open Django shell
     dir: "{{.BACKEND_DIR}}"
     cmds:
       - python manage.py shell
-
-  backend:check-stale:
-    desc: Check for stale RMAs
-    dir: "{{.BACKEND_DIR}}"
-    cmds:
-      - python manage.py check_stale_rmas
-
-  backend:check-stale:dry:
-    desc: Dry run of stale RMA check
-    dir: "{{.BACKEND_DIR}}"
-    cmds:
-      - python manage.py check_stale_rmas --dry-run
 
   # === Frontend Tasks ===
 
@@ -140,6 +126,12 @@ tasks:
     cmds:
       - npm run lint
 
+  frontend:typecheck:
+    desc: Run TypeScript type checking
+    dir: "{{.FRONTEND_DIR}}"
+    cmds:
+      - npm run typecheck
+
   frontend:fmt:
     desc: Format frontend code (if configured)
     dir: "{{.FRONTEND_DIR}}"
@@ -152,15 +144,16 @@ tasks:
         fi
 
   frontend:test:
-    desc: Run frontend tests (if configured)
+    desc: Run frontend tests
     dir: "{{.FRONTEND_DIR}}"
     cmds:
-      - |
-        if grep -q '"test"' package.json 2>/dev/null; then
-          npm test
-        else
-          echo "⚠ No test script configured. Frontend tests need to be set up."
-        fi
+      - npm test
+
+  frontend:test:coverage:
+    desc: Run frontend tests with coverage report
+    dir: "{{.FRONTEND_DIR}}"
+    cmds:
+      - npm run test:coverage
 
   # === Combined Project Tasks ===
 
@@ -189,6 +182,7 @@ tasks:
     desc: Run tests with coverage (≥{{.COVERAGE_THRESHOLD}}%)
     deps:
       - backend:test:coverage
+      - frontend:test:coverage
 
   lint:
     desc: Lint all code

@@ -43,7 +43,7 @@ class RegisterView(generics.CreateAPIView):
     def _notify_admins_new_registration(self, user):
         """Send email notification to system admins about new registration."""
         admin_emails = User.objects.filter(
-            role=User.SYSTEM_ADMIN,
+            role=User.ADMIN,
             is_active=True
         ).values_list('email', flat=True)
         
@@ -73,20 +73,8 @@ class PendingUsersView(generics.ListAPIView):
     pagination_class = None  # Disable pagination for this endpoint
     
     def get_queryset(self):
-        """Return pending users based on user role."""
-        user = self.request.user
-        
-        if user.is_system_admin():
-            # System admins see all pending users
-            return User.objects.filter(is_verified=False).select_related('customer')
-        elif user.is_customer_admin():
-            # Customer admins only see their customer's pending users
-            return User.objects.filter(
-                is_verified=False,
-                customer=user.customer
-            ).select_related('customer')
-        
-        return User.objects.none()
+        """Return pending users. Admins see all pending users."""
+        return User.objects.filter(is_verified=False).select_related('customer')
 
 
 @api_view(['POST'])
@@ -104,15 +92,6 @@ def approve_user(request, pk):
             {'detail': 'User not found.'},
             status=status.HTTP_404_NOT_FOUND
         )
-    
-    # Check permissions
-    if not request.user.is_system_admin():
-        # Customer admins can only approve users from their own customer
-        if not request.user.is_customer_admin() or user.customer != request.user.customer:
-            return Response(
-                {'detail': 'You do not have permission to approve this user.'},
-                status=status.HTTP_403_FORBIDDEN
-            )
     
     # Check if already verified
     if user.is_verified:
@@ -159,15 +138,6 @@ def reject_user(request, pk):
             {'detail': 'User not found.'},
             status=status.HTTP_404_NOT_FOUND
         )
-    
-    # Check permissions
-    if not request.user.is_system_admin():
-        # Customer admins can only reject users from their own customer
-        if not request.user.is_customer_admin() or user.customer != request.user.customer:
-            return Response(
-                {'detail': 'You do not have permission to reject this user.'},
-                status=status.HTTP_403_FORBIDDEN
-            )
     
     # Validate request data
     serializer = UserRejectionSerializer(data=request.data)

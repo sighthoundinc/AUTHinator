@@ -61,16 +61,12 @@ class User(AbstractUser):
     """
     
     # Role choices
-    SYSTEM_ADMIN = 'SYSTEM_ADMIN'
-    CUSTOMER_ADMIN = 'CUSTOMER_ADMIN'
-    CUSTOMER_USER = 'CUSTOMER_USER'
-    CUSTOMER_READONLY = 'CUSTOMER_READONLY'
+    ADMIN = 'ADMIN'
+    USER = 'USER'
     
     ROLE_CHOICES = [
-        (SYSTEM_ADMIN, 'System Admin'),
-        (CUSTOMER_ADMIN, 'Customer Admin'),
-        (CUSTOMER_USER, 'Customer User'),
-        (CUSTOMER_READONLY, 'Customer Read-Only'),
+        (ADMIN, 'Admin'),
+        (USER, 'User'),
     ]
     
     customer = models.ForeignKey(
@@ -84,7 +80,7 @@ class User(AbstractUser):
     role = models.CharField(
         max_length=20,
         choices=ROLE_CHOICES,
-        default=CUSTOMER_USER,
+        default=USER,
         help_text="User's role for access control"
     )
     is_verified = models.BooleanField(
@@ -109,6 +105,32 @@ class User(AbstractUser):
         null=True,
         help_text="Reason for rejection if user was rejected"
     )
+    totp_secret = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        help_text="TOTP secret for two-factor authentication"
+    )
+    totp_enabled = models.BooleanField(
+        default=False,
+        help_text="Whether TOTP two-factor authentication is enabled"
+    )
+    webauthn_registration_challenge = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Temporary storage for WebAuthn registration challenge (base64)"
+    )
+    webauthn_registration_name = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Temporary storage for WebAuthn credential name during registration"
+    )
+    webauthn_auth_challenge = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Temporary storage for WebAuthn authentication challenge (base64)"
+    )
 
     class Meta:
         ordering = ['customer', 'username']
@@ -120,18 +142,17 @@ class User(AbstractUser):
             return f"{self.username} ({self.customer.name})"
         return self.username
 
+    def is_admin(self):
+        """Check if user has admin role."""
+        return self.role == self.ADMIN
+
+    # Legacy aliases for backward compatibility during migration
     def is_system_admin(self):
-        """Check if user is a system admin."""
-        return self.role == self.SYSTEM_ADMIN
+        return self.is_admin()
 
     def is_customer_admin(self):
-        """Check if user is a customer admin."""
-        return self.role == self.CUSTOMER_ADMIN
+        return self.is_admin()
 
     def can_manage_users(self):
         """Check if user can manage other users."""
-        return self.role in [self.SYSTEM_ADMIN, self.CUSTOMER_ADMIN]
-
-    def can_edit_data(self):
-        """Check if user can edit data (not read-only)."""
-        return self.role != self.CUSTOMER_READONLY
+        return self.is_admin()

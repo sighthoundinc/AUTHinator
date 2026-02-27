@@ -14,8 +14,12 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from django.contrib.auth import authenticate
+from django.core.signing import TimestampSigner
 
 from .serializers import LoginSerializer, UserSerializer
+
+# Signer for MFA tokens (step-up auth between password and MFA verification)
+mfa_signer = TimestampSigner(salt='mfa-login')
 
 
 @api_view(['GET'])
@@ -81,7 +85,23 @@ def login(request):
             status=status.HTTP_403_FORBIDDEN
         )
     
-    # Generate tokens
+    # Check if MFA is required
+    mfa_methods = []
+    if user.totp_enabled:
+        mfa_methods.append('totp')
+    if user.webauthn_credentials.exists():
+        mfa_methods.append('webauthn')
+    
+    if mfa_methods:
+        # Issue a short-lived MFA token instead of JWT tokens
+        mfa_token = mfa_signer.sign(str(user.id))
+        return Response({
+            'mfa_required': True,
+            'mfa_token': mfa_token,
+            'mfa_methods': mfa_methods,
+        }, status=status.HTTP_200_OK)
+    
+    # No MFA — issue JWT tokens directly
     refresh = RefreshToken.for_user(user)
     
     return Response({

@@ -79,10 +79,10 @@ class RegistrationSerializer(serializers.ModelSerializer):
         except Customer.DoesNotExist:
             raise serializers.ValidationError({"customer_id": "Invalid customer ID."})
         
-        # Prevent users from registering as system admin
-        role = attrs.get('role', User.CUSTOMER_USER)
-        if role == User.SYSTEM_ADMIN:
-            attrs['role'] = User.CUSTOMER_USER
+        # Prevent users from registering as admin
+        role = attrs.get('role', User.USER)
+        if role == User.ADMIN:
+            attrs['role'] = User.USER
         
         return attrs
     

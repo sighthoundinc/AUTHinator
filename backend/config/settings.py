@@ -180,7 +180,7 @@ SIMPLE_JWT = {
 # CORS settings
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:3000,http://localhost',
+    default='http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost',
     cast=lambda v: [s.strip() for s in v.split(',')]
 )
 CORS_ALLOW_CREDENTIALS = True

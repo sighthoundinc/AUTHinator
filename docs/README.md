@@ -1,0 +1,3 @@
+# Authinator
+
+Centralized authentication service.

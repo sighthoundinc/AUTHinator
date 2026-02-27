@@ -39,7 +39,7 @@ class TestRegistrationEndpoint:
             'first_name': 'New',
             'last_name': 'User',
             'customer_id': customer.id,
-            'role': User.CUSTOMER_USER
+            'role': User.USER
         }, content_type='application/json')
         
         assert response.status_code == 201
@@ -60,7 +60,7 @@ class TestRegistrationEndpoint:
             username="admin",
             email="admin@test.com",
             password="adminpass123",
-            role=User.SYSTEM_ADMIN
+            role=User.ADMIN
         )
         admin.is_verified = True
         admin.save()
@@ -156,7 +156,7 @@ class TestRegistrationEndpoint:
         
         assert response.status_code == 201
         user = User.objects.get(username='newuser')
-        assert user.role == User.CUSTOMER_USER
+        assert user.role == User.USER
     
     def test_register_cannot_set_system_admin_role(self, customer):
         """Test users cannot register as system admin."""
@@ -167,13 +167,13 @@ class TestRegistrationEndpoint:
             'password': 'testpass123',
             'password_confirm': 'testpass123',
             'customer_id': customer.id,
-            'role': User.SYSTEM_ADMIN
+            'role': User.ADMIN
         }, content_type='application/json')
         
         # Should either reject or default to CUSTOMER_USER
         if response.status_code == 201:
             user = User.objects.get(username='newuser')
-            assert user.role != User.SYSTEM_ADMIN
+            assert user.role != User.ADMIN
 
 
 @pytest.mark.django_db
@@ -195,7 +195,7 @@ class TestPendingUsersEndpoint:
             username="admin",
             email="admin@test.com",
             password="adminpass123",
-            role=User.SYSTEM_ADMIN
+            role=User.ADMIN
         )
         user.is_verified = True
         user.save()
@@ -241,7 +241,7 @@ class TestPendingUsersEndpoint:
             username='regular',
             customer=customer,
             password='pass123',
-            role=User.CUSTOMER_USER
+            role=User.USER
         )
         user.is_verified = True
         user.save()
@@ -282,7 +282,7 @@ class TestApproveUserEndpoint:
             username="admin",
             email="admin@test.com",
             password="adminpass123",
-            role=User.SYSTEM_ADMIN
+            role=User.ADMIN
         )
         user.is_verified = True
         user.save()
@@ -344,7 +344,7 @@ class TestApproveUserEndpoint:
             username='regular',
             customer=customer,
             password='pass123',
-            role=User.CUSTOMER_USER
+            role=User.USER
         )
         regular_user.is_verified = True
         regular_user.save()
@@ -385,7 +385,7 @@ class TestRejectUserEndpoint:
             username="admin",
             email="admin@test.com",
             password="adminpass123",
-            role=User.SYSTEM_ADMIN
+            role=User.ADMIN
         )
         user.is_verified = True
         user.save()

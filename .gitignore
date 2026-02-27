@@ -53,6 +53,9 @@ secrets/
 .DS_Store
 Thumbs.db
 
+# Reference materials (internal dev only)
+Reference/
+
 # Testing
 .pytest_cache/
 .coverage
