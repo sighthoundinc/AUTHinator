@@ -5,6 +5,9 @@ set:
   - nounset
   - pipefail
 
+env:
+  PATH: "{{.ROOT_DIR}}/.venv/bin:{{.PATH}}"
+
 vars:
   PROJECT_NAME: Authinator
   BACKEND_DIR: backend
@@ -23,36 +26,32 @@ tasks:
   backend:install:
     desc: Create venv and install backend dependencies
     cmds:
-      - |
-        if [ ! -d "{{.ROOT_DIR}}/.venv" ]; then
-          echo "Creating virtual environment..."
-          python3 -m venv "{{.ROOT_DIR}}/.venv"
-        fi
-      - "{{.ROOT_DIR}}/.venv/bin/pip" install -r "{{.BACKEND_DIR}}/requirements.txt"
+      - test -d "{{.ROOT_DIR}}/.venv" || python3 -m venv "{{.ROOT_DIR}}/.venv"
+      - pip install -r "{{.BACKEND_DIR}}/requirements.txt"
 
   backend:migrate:
     desc: Run Django migrations
     dir: "{{.BACKEND_DIR}}"
     cmds:
-      - "{{.ROOT_DIR}}/.venv/bin/python" manage.py migrate
+      - python manage.py migrate
 
   backend:makemigrations:
     desc: Create new Django migrations
     dir: "{{.BACKEND_DIR}}"
     cmds:
-      - "{{.ROOT_DIR}}/.venv/bin/python" manage.py makemigrations
+      - python manage.py makemigrations
 
   backend:test:
     desc: Run backend tests
     dir: "{{.BACKEND_DIR}}"
     cmds:
-      - "{{.ROOT_DIR}}/.venv/bin/python" manage.py test
+      - python manage.py test
 
   backend:test:coverage:
     desc: Run backend tests with coverage report
     dir: "{{.BACKEND_DIR}}"
     cmds:
-      - "{{.ROOT_DIR}}/.venv/bin/python" -m pytest
+      - python -m pytest
 
 
   backend:lint:
@@ -81,19 +80,19 @@ tasks:
     desc: Start Django development server
     dir: "{{.BACKEND_DIR}}"
     cmds:
-      - "{{.ROOT_DIR}}/.venv/bin/python" manage.py runserver 8001
+      - python manage.py runserver 8001
 
   backend:shell:
     desc: Open Django shell
     dir: "{{.BACKEND_DIR}}"
     cmds:
-      - "{{.ROOT_DIR}}/.venv/bin/python" manage.py shell
+      - python manage.py shell
 
   backend:manage:
     desc: "Run arbitrary Django management command (usage: task backend:manage -- command args)"
     dir: "{{.BACKEND_DIR}}"
     cmds:
-      - "{{.ROOT_DIR}}/.venv/bin/python" manage.py {{.CLI_ARGS}}
+      - python manage.py {{.CLI_ARGS}}
 
   # === Frontend Tasks ===
 
@@ -246,7 +245,7 @@ tasks:
     prompt: "This will delete all data. Continue?"
     cmds:
       - rm -f db.sqlite3
-      - "{{.ROOT_DIR}}/.venv/bin/python" manage.py migrate
+      - python manage.py migrate
       - echo "✓ Database reset complete"
 
   db:seed:
@@ -255,7 +254,7 @@ tasks:
     cmds:
       - |
         if [ -f "seed_data.py" ]; then
-          "{{.ROOT_DIR}}/.venv/bin/python" seed_data.py
+          python seed_data.py
         else
           echo "⚠ No seed_data.py script found"
         fi
