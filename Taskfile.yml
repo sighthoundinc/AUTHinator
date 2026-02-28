@@ -27,31 +27,31 @@ tasks:
     desc: Create venv and install backend dependencies
     cmds:
       - test -d "{{.ROOT_DIR}}/.venv" || python3 -m venv "{{.ROOT_DIR}}/.venv"
-      - python3 -m pip install -r "{{.BACKEND_DIR}}/requirements.txt"
+      - "{{.ROOT_DIR}}/.venv/bin/pip install -r {{.BACKEND_DIR}}/requirements.txt"
 
   backend:migrate:
     desc: Run Django migrations
     dir: "{{.BACKEND_DIR}}"
     cmds:
-      - python3 manage.py migrate
+      - "{{.ROOT_DIR}}/.venv/bin/python manage.py migrate"
 
   backend:makemigrations:
     desc: Create new Django migrations
     dir: "{{.BACKEND_DIR}}"
     cmds:
-      - python3 manage.py makemigrations
+      - "{{.ROOT_DIR}}/.venv/bin/python manage.py makemigrations"
 
   backend:test:
     desc: Run backend tests
     dir: "{{.BACKEND_DIR}}"
     cmds:
-      - python3 manage.py test
+      - "{{.ROOT_DIR}}/.venv/bin/python manage.py test"
 
   backend:test:coverage:
     desc: Run backend tests with coverage report
     dir: "{{.BACKEND_DIR}}"
     cmds:
-      - python3 -m pytest
+      - "{{.ROOT_DIR}}/.venv/bin/python -m pytest"
 
 
   backend:lint:
@@ -80,19 +80,19 @@ tasks:
     desc: Start Django development server
     dir: "{{.BACKEND_DIR}}"
     cmds:
-      - python3 manage.py runserver 8001
+      - "{{.ROOT_DIR}}/.venv/bin/python manage.py runserver 8001"
 
   backend:shell:
     desc: Open Django shell
     dir: "{{.BACKEND_DIR}}"
     cmds:
-      - python3 manage.py shell
+      - "{{.ROOT_DIR}}/.venv/bin/python manage.py shell"
 
   backend:manage:
     desc: "Run arbitrary Django management command (usage: task backend:manage -- command args)"
     dir: "{{.BACKEND_DIR}}"
     cmds:
-      - python3 manage.py {{.CLI_ARGS}}
+      - "{{.ROOT_DIR}}/.venv/bin/python manage.py {{.CLI_ARGS}}"
 
   # === Frontend Tasks ===
 
