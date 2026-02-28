@@ -7,8 +7,9 @@ Implements B2B multi-tenant model where:
 - Multiple users can belong to one Customer
 """
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.core.validators import EmailValidator
+from django.utils import timezone
 
 
 class Customer(models.Model):
@@ -50,6 +51,16 @@ class Customer(models.Model):
         return self.name
 
 
+class CustomUserManager(UserManager):
+    """Custom manager that auto-verifies superusers."""
+
+    def create_superuser(self, username, email=None, password=None, **extra_fields):
+        extra_fields.setdefault('role', 'ADMIN')
+        extra_fields.setdefault('is_verified', True)
+        extra_fields.setdefault('verified_at', timezone.now())
+        return super().create_superuser(username, email, password, **extra_fields)
+
+
 class User(AbstractUser):
     """
     Custom user model extending Django's AbstractUser.
@@ -60,6 +71,8 @@ class User(AbstractUser):
     - Verification status for admin approval workflow
     """
     
+    objects = CustomUserManager()
+
     # Role choices
     ADMIN = 'ADMIN'
     USER = 'USER'
