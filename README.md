@@ -127,7 +127,27 @@ task check
 ```bash
 cd frontend
 npm install
-npm start  # Starts on port 3000
+npm start  # Starts on port 3001
+```
+
+### Troubleshooting Fresh Installs
+
+If services fail to start, check:
+
+```bash
+# Verify .env exists
+ls -la backend/.env
+
+# Run migrations if database doesn't exist
+cd backend && python manage.py migrate
+
+# Check that dependencies installed correctly
+ls -la .venv/                    # Backend venv should exist
+ls -la frontend/node_modules/    # Frontend deps should exist
+
+# View logs if running via platform orchestrator
+tail -50 /path/to/logs/Authinator-backend.log
+tail -50 /path/to/logs/Authinator-frontend.log
 ```
 
 ### Access
