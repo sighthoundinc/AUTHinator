@@ -6,7 +6,7 @@ export interface User {
   customer: {
     id: string;
     name: string;
-  };
+  } | null;
 }
 
 export interface LoginResponse {

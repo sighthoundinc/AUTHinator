@@ -193,7 +193,7 @@ SESSION_COOKIE_DOMAIN = None  # Allow localhost
 SESSION_SAVE_EVERY_REQUEST = True  # Ensure session is saved for OAuth flow
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SECURE = False
-CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8001', 'http://127.0.0.1:8001']
 
 # Email settings (for development)
 EMAIL_BACKEND = config(
