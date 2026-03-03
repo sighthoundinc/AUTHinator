@@ -97,6 +97,8 @@ python manage.py createsuperuser
 python manage.py runserver 8001
 ```
 
+**Note**: If you're using the [Inator Platform](https://github.com/losomode/inator), the root `task setup` handles all of this automatically, including creating a default admin user and registering services.
+
 ### Using Taskfile (Recommended)
 
 ```bash
@@ -106,7 +108,7 @@ task install
 # Run backend development server
 task backend:dev
 
-# Run frontend development server
+# Run frontend development server (standalone mode)
 task frontend:dev
 
 # Run tests with coverage
@@ -121,6 +123,8 @@ task fmt
 # Run all checks (format, lint, test)
 task check
 ```
+
+**Important**: When running as part of the Inator Platform, the frontend is served from the unified SPA at `inator/frontend/`. The standalone frontend at `Authinator/frontend/` is only for development/testing of Authinator in isolation.
 
 ### Frontend Setup
 
@@ -153,8 +157,9 @@ tail -50 /path/to/logs/Authinator-frontend.log
 ### Access
 
 | Service | URL | Purpose |
-|---------|-----|----------|
-| **Frontend** | http://localhost:3000 | User login, registration, profile |
+|---------|-----|---------|
+| **Frontend** (standalone) | http://localhost:3001 | User login, registration, profile (dev only) |
+| **Frontend** (platform) | http://localhost:8080 | Unified UI via Caddy gateway (recommended) |
 | **Backend API** | http://localhost:8001 | REST API endpoints |
 | **Admin Panel** | http://localhost:8001/admin | Django admin interface |
 
@@ -351,8 +356,9 @@ def your_view(request):
 
 | Layer | Technology |
 |-------|-----------|
-| **Backend** | Python 3.10+, Django 6.x, Django REST Framework |
-| **Frontend** | TypeScript (strict), React 18, Vite, Tailwind CSS |
+| **Backend** | Python 3.11+, Django 6.x, Django REST Framework |
+| **Frontend** | TypeScript (strict), React 19, Vite, Tailwind CSS |
+| **Gateway** | Caddy 2.x (in platform mode) |
 | **Authentication** | JWT (simplejwt), django-allauth |
 | **SSO** | Google OAuth, Microsoft Azure AD, Auth0, Okta |
 | **MFA** | TOTP, WebAuthn/passkeys |
