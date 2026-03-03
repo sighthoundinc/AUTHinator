@@ -13,6 +13,20 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         site = Site.objects.get_current()
         
+        # Configure Site domain from DEPLOY_DOMAIN (for OAuth callback URLs)
+        deploy_domain = getattr(settings, 'DEPLOY_DOMAIN', '')
+        if deploy_domain:
+            site.domain = deploy_domain
+            site.name = deploy_domain
+        else:
+            # Use unified gateway for local dev
+            site.domain = 'localhost:8080'
+            site.name = 'Inator Platform (dev)'
+        site.save()
+        self.stdout.write(
+            self.style.SUCCESS(f'Site domain set to: {site.domain}')
+        )
+        
         # Configure Google
         if settings.SSO_PROVIDER_CREDENTIALS['google']['enabled']:
             google_app, created = SocialApp.objects.update_or_create(

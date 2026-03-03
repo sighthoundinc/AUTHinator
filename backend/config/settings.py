@@ -260,6 +260,9 @@ ACCOUNT_EMAIL_VERIFICATION = 'optional'
 ACCOUNT_USERNAME_REQUIRED = True
 ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
 
+# OAuth callback URL protocol (http for dev, https for production)
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = DEPLOY_SCHEME
+
 # SSO Configuration
 ACCOUNT_ADAPTER = 'auth_core.account_adapter.CustomAccountAdapter'
 SOCIALACCOUNT_ADAPTER = 'auth_core.account_adapter.CustomSocialAccountAdapter'
