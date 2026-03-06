@@ -106,7 +106,7 @@ const ServiceDirectory: React.FC = () => {
                   onClick={() => navigate('/profile')}
                   className="px-4 py-2 text-sm bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
                 >
-                  ⚙ Profile
+                  🔒 Security
                 </button>
                 <button
                   onClick={handleLogout}

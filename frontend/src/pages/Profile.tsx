@@ -174,7 +174,7 @@ const Profile: React.FC = () => {
             >
               ← Back
             </button>
-            <h1 className="text-2xl font-bold text-gray-900">🔐 Profile & Security</h1>
+            <h1 className="text-2xl font-bold text-gray-900">🔐 Security Settings</h1>
           </div>
         </div>
       </header>
