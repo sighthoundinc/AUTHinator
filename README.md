@@ -99,6 +99,29 @@ python manage.py runserver 8001
 
 **Note**: If you're using the [Inator Platform](https://github.com/losomode/inator), the root `task setup` handles all of this automatically, including creating a default admin user and registering services.
 
+### Demo Database
+
+The Inator Platform provides a complete demo database with 12 users across 4 companies. See the [Demo Database Guide](https://github.com/losomode/inator/blob/main/docs/DEMO_DATABASE.md) for full details.
+
+```bash
+# From the platform root (inator/)
+task setup:demodb        # Build demo databases
+task demodb:activate     # Activate demo data
+task setup:sso           # Configure OAuth providers (optional)
+task restart:all         # Restart all services
+```
+
+**Demo users** (username/password):
+- Platform admins: `admin/admin`, `alice.admin/admin`
+- Company managers: `bob.manager/manager`, `frank.manager/manager`, etc.
+- Company members: `carol.member/member`, `grace.member/member`, etc.
+
+The demo database includes:
+- 12 users with proper authentication credentials
+- 4 companies (Acme, Globex, Initech, Wayne)
+- 3 role levels (ADMIN=100, MANAGER=30, MEMBER=10)
+- OAuth provider configuration support
+
 ### Using Taskfile (Recommended)
 
 ```bash
@@ -204,8 +227,12 @@ sequenceDiagram
    ```
 4. **Configure in Django**:
    ```bash
+   # From Authinator directory
    cd backend
    python manage.py setup_sso
+   
+   # OR from platform root (recommended)
+   task setup:sso
    ```
 
 ### Setup Example: Microsoft
@@ -219,8 +246,12 @@ sequenceDiagram
    ```
 4. **Configure in Django**:
    ```bash
+   # From Authinator directory
    cd backend
    python manage.py setup_sso
+   
+   # OR from platform root (recommended)
+   task setup:sso
    ```
 
 ## API Endpoints
