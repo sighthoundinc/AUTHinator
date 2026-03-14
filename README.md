@@ -147,7 +147,7 @@ task fmt
 task check
 ```
 
-**Important**: When running as part of the Inator Platform, the frontend is served from the unified SPA at `inator/frontend/`. The standalone frontend at `Authinator/frontend/` is only for development/testing of Authinator in isolation.
+**Note**: When running as part of the Inator Platform, the frontend is accessed via the Caddy gateway at `http://localhost:8080`. Authinator serves the root path (`/`) including login and the service directory.
 
 ### Frontend Setup
 
@@ -181,8 +181,8 @@ tail -50 /path/to/logs/Authinator-frontend.log
 
 | Service | URL | Purpose |
 |---------|-----|---------|
-| **Frontend** (standalone) | http://localhost:3001 | User login, registration, profile (dev only) |
-| **Frontend** (platform) | http://localhost:8080 | Unified UI via Caddy gateway (recommended) |
+| **Frontend** (standalone) | http://localhost:3001 | Login, service directory, security settings |
+| **Frontend** (platform) | http://localhost:8080 | Via Caddy gateway (recommended) |
 | **Backend API** | http://localhost:8001 | REST API endpoints |
 | **Admin Panel** | http://localhost:8001/admin | Django admin interface |
 
@@ -530,11 +530,15 @@ AUTHinator/
 │   ├── requirements.txt   # Python dependencies
 │   ├── pytest.ini         # Test configuration
 │   └── manage.py
-├── frontend/              # React TypeScript app
+├── frontend/              # React TypeScript SPA (served at / via Caddy)
 │   ├── src/
-│   │   ├── pages/         # Login, ServiceDirectory
-│   │   └── api/           # API client
-│   └── public/
+│   │   ├── App.tsx        # BrowserRouter + routes
+│   │   ├── main.tsx       # Entry point
+│   │   ├── api.ts         # Inator-specific API calls
+│   │   ├── types.ts       # Inator-specific types
+│   │   └── pages/         # Login, Home (service directory), Security
+│   ├── vite.config.ts     # @inator/shared alias, Tailwind v4
+│   └── package.json
 ├── docs/                  # Documentation
 ├── Taskfile.yml           # Task automation
 └── README.md
