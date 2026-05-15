@@ -97,11 +97,11 @@ python manage.py createsuperuser
 python manage.py runserver 8001
 ```
 
-**Note**: If you're using the [Inator Platform](https://github.com/losomode/inator), the root `task setup` handles all of this automatically, including creating a default admin user and registering services.
+**Note**: If you're using the [Inator Platform](https://github.com/sighthoundinc/inator), the root `task setup` handles all of this automatically, including creating a default admin user and registering services.
 
 ### Demo Database
 
-The Inator Platform provides a complete demo database with 12 users across 4 companies. See the [Demo Database Guide](https://github.com/losomode/inator/blob/main/docs/DEMO_DATABASE.md) for full details.
+The Inator Platform provides a complete demo database with 12 users across 4 companies. See the [Demo Database Guide](https://github.com/sighthoundinc/inator/blob/main/docs/DEMO_DATABASE.md) for full details.
 
 ```bash
 # From the platform root (inator/)
@@ -691,7 +691,7 @@ Full API documentation available at:
 
 ## 📦 Repository
 
-**GitHub**: [losomode/AUTHinator](https://github.com/losomode/AUTHinator)
+**GitHub**: [sighthoundinc/AUTHinator](https://github.com/sighthoundinc/AUTHinator)
 
 ## 📝 License
 
@@ -703,8 +703,8 @@ Part of the Inator Platform. See main platform docs for contributing guidelines.
 
 ## ❓ Support
 
-- **Issues**: [GitHub Issues](https://github.com/losomode/AUTHinator/issues)
-- **Platform Docs**: [Inator Platform](https://github.com/losomode/inator)
+- **Issues**: [GitHub Issues](https://github.com/sighthoundinc/AUTHinator/issues)
+- **Platform Docs**: [Inator Platform](https://github.com/sighthoundinc/inator)
 - **Discord**: Coming soon
 
 ---
